@@ -10,12 +10,18 @@ public class copydir
 	public static void main(String[] a) throws IOException
 	{
 		File f = new File("ex");
-		File n = new File("newex");
-		n.mkdir();
 		
-		cloneDir(f, n);
+		project(f);
 	}
 	
+	
+	public static void project(File from) throws IOException
+	{
+		File to = new File(from.getName() + "_proj");
+		to.mkdir();
+		
+		cloneDir(from, to);
+	}
 	
 	public static void cloneDir(File from, File to) throws IOException
 	{
