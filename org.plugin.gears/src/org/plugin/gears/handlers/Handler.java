@@ -1,0 +1,241 @@
+package org.plugin.gears.handlers;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.*;
+import org.eclipse.core.commands.AbstractHandler;
+import org.eclipse.core.commands.ExecutionEvent;
+import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.handlers.HandlerUtil;
+//import org.eclipse.jface.dialogs.MessageDialog;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import javax.swing.*;
+
+public class Handler extends AbstractHandler {
+	/**
+	 * The constructor.
+	 */
+	public Handler() {
+	}
+	static File choice = null;
+
+	public static void fileList(int check, JTextField J){
+
+		List<String> files = new ArrayList<>();
+        List<String> directories = new ArrayList<>();
+        
+        String workspace = ResourcesPlugin.getWorkspace().getRoot().getLocation().toString();
+    	File folder = new File(workspace);
+    	File[] listOfFiles = folder.listFiles();
+        
+        for (int i = 0; i < listOfFiles.length; i++) {
+            if (listOfFiles[i].isFile()) {
+                files.add(listOfFiles[i].getName());
+            } else if (listOfFiles[i].isDirectory()) {
+                directories.add(listOfFiles[i].getName());
+            }
+        }
+        
+        //New Juice
+        String[] labels;
+        if(check == 0){
+        	 labels = new String[directories.size()];
+             int i = 0;
+             while(i < directories.size()){
+             	labels[i] = directories.get(i);
+             	i++;
+             }
+        }
+        else if(check == 1){
+        	 labels = new String[files.size()];
+             int i = 0;
+             while(i < files.size()){
+             	labels[i] = files.get(i);
+             	i++;
+             }
+        }
+        else{
+        	 labels = new String[files.size()+directories.size()];
+             int i = 0;
+             while(i < files.size()){
+             	labels[i] = files.get(i);
+             	i++;
+             }
+             while(i<files.size()+directories.size()){
+             	labels[i] = directories.get(i-files.size());
+             	i++;
+             }
+        }
+        
+        String title = "JList Sample";
+        JFrame f = new JFrame(title);
+        JList list = new JList(labels);
+        list.setFont(new Font("Monospace", Font.PLAIN, 25));
+        JScrollPane scrollPane = new JScrollPane(list);
+
+        Container contentPane = f.getContentPane();
+        contentPane.add(scrollPane, BorderLayout.CENTER);
+
+        JButton goButton;
+    	//File choice = null;
+        goButton = new JButton("select");
+        goButton.setPreferredSize(new Dimension(100,35));
+        goButton.addActionListener(new ActionListener(){
+	        public void actionPerformed(ActionEvent e){
+	        	int index = list.getSelectedIndex();
+	        	if(index!=-1){
+	        		if(check==0){
+	        			choice = listOfFiles[index+files.size()];
+	        		}
+	        		else{
+	        			choice = listOfFiles[index];
+	        		}
+	        	}
+	        	J.setText(choice.getAbsolutePath());
+	        	f.dispose();
+	        }
+        });
+        contentPane.add(goButton, BorderLayout.PAGE_END);
+        f.setSize(200, 400);
+        f.setVisible(true);
+	}
+	
+	public Object execute(ExecutionEvent event) throws ExecutionException {
+		IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindowChecked(event);
+		
+		//GUI
+		JFrame frame = new JFrame("GEARS interface");
+	    //frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	    frame.setSize(620,500);
+	    //Below Layout aligns added panels vertically in the GUI
+	    frame.setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.Y_AXIS));
+	    //Below creates placeholder panels for GUI items
+	    JPanel pane1 = new JPanel();
+	    JPanel pane2 = new JPanel();
+	    JPanel pane3 = new JPanel();
+	    JPanel pane4 = new JPanel();
+	    JPanel pane5 = new JPanel();
+	    JPanel pane6 = new JPanel();
+	    //Below adds Label,Text field,and Button to pane1.
+	    pane1.setBackground(Color.WHITE);
+		    pane1.setLayout(new FlowLayout(FlowLayout.CENTER));
+		    JLabel dirLabel = new JLabel("Select Directory : ");
+		    dirLabel.setFont(new Font("Monospace", Font.PLAIN, 25));
+		    dirLabel.setForeground(Color.BLACK);
+		    pane1.add(dirLabel);
+		    
+		    JTextField dirTextfield;
+		    //testing directory fetching
+		    String workspace = ResourcesPlugin.getWorkspace().getRoot().getLocation().toString();
+	        dirTextfield = new JTextField(workspace);
+	        dirTextfield.setPreferredSize(new Dimension(275,35));
+	        pane1.add(dirTextfield);
+	
+	        JButton dirButton;
+	        dirButton = new JButton("browse...");
+	        dirButton.setPreferredSize(new Dimension(100,35));
+	        dirButton.addActionListener(new ActionListener(){
+		        public void actionPerformed(ActionEvent e){
+		        	fileList(0, dirTextfield);
+		        }
+	        });
+	        pane1.add(dirButton);
+	    
+	        /*pane2.setBackground(Color.WHITE);
+		    *pane2.setLayout(new FlowLayout(FlowLayout.CENTER));
+		    *JLabel varLabel = new JLabel("Variant File : ");
+		    *varLabel.setFont(new Font("Monospace", Font.PLAIN, 25));
+		    *varLabel.setForeground(Color.BLACK);
+		    *pane2.add(varLabel);
+		    *
+	        *
+		    *JTextField varTextfield;
+	        *varTextfield = new JTextField("variant file here");
+	        *varTextfield.setPreferredSize(new Dimension(275,35));
+	        *pane2.add(varTextfield);
+			*
+	        *JButton varButton;
+	        *varButton = new JButton("browse...");
+	        *varButton.setPreferredSize(new Dimension(100,35));
+	        *///pane2.add(varButton);
+        
+	    pane3.setBackground(Color.WHITE);
+		    pane3.setLayout(new FlowLayout(FlowLayout.CENTER));
+		    JLabel logLabel = new JLabel("Logic File : ");
+		    logLabel.setFont(new Font("Monospace", Font.PLAIN, 25));
+		    logLabel.setForeground(Color.BLACK);
+		    pane3.add(logLabel);
+		    
+		    JTextField logTextfield;
+	        logTextfield = new JTextField("logic file here");
+	        logTextfield.setPreferredSize(new Dimension(275,35));
+	        pane3.add(logTextfield);
+	
+	        JButton logButton;
+	        logButton = new JButton("browse...");
+	        logButton.setPreferredSize(new Dimension(100,35));
+	        logButton.addActionListener(new ActionListener(){
+		        public void actionPerformed(ActionEvent e){
+		        	fileList(1, logTextfield);
+		        }
+	        });
+	        pane3.add(logButton);
+        
+	    pane4.setBackground(Color.WHITE);
+		    pane4.setLayout(new FlowLayout(FlowLayout.CENTER));
+		    JLabel pfpLabel = new JLabel("Projected File Path : ");
+		    pfpLabel.setFont(new Font("Monospace", Font.PLAIN, 20));
+		    pfpLabel.setForeground(Color.BLACK);
+		    pane4.add(pfpLabel);
+		    
+		    JTextField pfpTextfield;
+	        pfpTextfield = new JTextField("output file location");
+	        pfpTextfield.setPreferredSize(new Dimension(275,35));
+	        pane4.add(pfpTextfield);
+	
+	        JButton pfpButton;
+	        pfpButton = new JButton("browse...");
+	        pfpButton.setPreferredSize(new Dimension(100,35));
+	        pfpButton.addActionListener(new ActionListener(){
+		        public void actionPerformed(ActionEvent e){
+		        	fileList(0, pfpTextfield);
+		        }
+	        });
+	        pane4.add(pfpButton);
+        
+	    pane5.setBackground(Color.WHITE);
+	    	JButton goButton;
+	        goButton = new JButton("Create Projected File");
+	        goButton.setPreferredSize(new Dimension(300,35));
+	        pane5.add(goButton);
+	        
+	    pane6.setBackground(Color.WHITE);
+		    JButton showButton;
+	        showButton = new JButton("View Projected File");
+	        showButton.setPreferredSize(new Dimension(300,35));
+	        pane6.add(showButton);
+        
+	    frame.add(pane1);
+	    //frame.add(pane2);
+	    frame.add(pane3);
+	    frame.add(pane4);
+	    frame.add(pane5);
+	    frame.add(pane6);
+	    frame.setVisible(true);
+	       
+		return null;
+	}
+}
