@@ -20,7 +20,7 @@ import org.eclipse.ui.handlers.HandlerUtil;
 
 /*
  * Handler for the Gears Eclipse Plug-in.
- * Handles the GUI, and related menus and files browsing.
+ * Handles the GUI, and related menus and file browsing.
  */
 public class Handler extends AbstractHandler {
 	/**
