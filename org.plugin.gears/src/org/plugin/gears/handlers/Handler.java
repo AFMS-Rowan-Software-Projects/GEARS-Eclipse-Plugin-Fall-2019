@@ -10,17 +10,22 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.*;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.handlers.HandlerUtil;
 
 /*
  * Handler for the Gears Eclipse Plug-in.
- * Handles the GUI, and related menus and files browsing.
+ * Handles the GUI, and related menus and file browsing.
  */
 public class Handler extends AbstractHandler {
 	/**
@@ -123,63 +128,62 @@ public class Handler extends AbstractHandler {
         f.setVisible(true);
 	}
 	/**
-	 * execute runs the plug-in and handles the main GUI.
+	 * mainGUI handles the main GUI window.
 	 */
-	public Object execute(ExecutionEvent event) throws ExecutionException {
-		
+	public static void mainGUI(){
 		//main GUI components.
 		JFrame frame = new JFrame("GEARS interface");
-	    frame.setSize(620,500);
-	    //below layout aligns added panels vertically in the GUI.
-	    frame.setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.Y_AXIS));
-	    //creates placeholder panels for GUI items.
-	    JPanel pane1 = new JPanel();
-	    JPanel pane3 = new JPanel();
-	    JPanel pane4 = new JPanel();
-	    JPanel pane5 = new JPanel();
-	    JPanel pane6 = new JPanel();
-	    //adds "Select Directory" Label,Text field,and Button to pane1.
-	    pane1.setBackground(Color.WHITE);
-		    pane1.setLayout(new FlowLayout(FlowLayout.CENTER));
-		    JLabel dirLabel = new JLabel("Select Directory : ");
-		    dirLabel.setFont(new Font("Monospace", Font.PLAIN, 25));
-		    dirLabel.setForeground(Color.BLACK);
-		    pane1.add(dirLabel);
-		    JTextField dirTextfield;
-		    String workspace = ResourcesPlugin.getWorkspace().getRoot().getLocation().toString();
-	        dirTextfield = new JTextField(workspace);
-	        dirTextfield.setPreferredSize(new Dimension(275,35));
-	        pane1.add(dirTextfield);
-	        JButton dirButton;
-	        dirButton = new JButton("browse...");
-	        dirButton.setPreferredSize(new Dimension(100,35));
-	        dirButton.addActionListener(new ActionListener(){
-		        public void actionPerformed(ActionEvent e){
-		        	fileList(0, dirTextfield);
-		        }
-	        });
-	        pane1.add(dirButton);
-	    //adds "Logic File" Label,Text field,and Button to pane1.
-	    pane3.setBackground(Color.WHITE);
-		    pane3.setLayout(new FlowLayout(FlowLayout.CENTER));
-		    JLabel logLabel = new JLabel("Logic File : ");
-		    logLabel.setFont(new Font("Monospace", Font.PLAIN, 25));
-		    logLabel.setForeground(Color.BLACK);
-		    pane3.add(logLabel);
-		    JTextField logTextfield;
-	        logTextfield = new JTextField("logic file here");
-	        logTextfield.setPreferredSize(new Dimension(275,35));
-	        pane3.add(logTextfield);
-	        JButton logButton;
-	        logButton = new JButton("browse...");
-	        logButton.setPreferredSize(new Dimension(100,35));
-	        logButton.addActionListener(new ActionListener(){
-		        public void actionPerformed(ActionEvent e){
-		        	fileList(1, logTextfield);
-		        }
-	        });
-	        pane3.add(logButton);
-	    //adds "Projected File Path" Label,Text field,and Button to pane1.
+		frame.setSize(620,500);
+		//below layout aligns added panels vertically in the GUI.
+		frame.setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.Y_AXIS));
+		//creates placeholder panels for GUI items.
+		JPanel pane1 = new JPanel();
+		JPanel pane3 = new JPanel();
+		JPanel pane4 = new JPanel();
+		JPanel pane5 = new JPanel();
+		JPanel pane6 = new JPanel();
+		//adds "Select Directory" Label,Text field,and Button to pane1.
+		pane1.setBackground(Color.WHITE);
+			pane1.setLayout(new FlowLayout(FlowLayout.CENTER));
+			JLabel dirLabel = new JLabel("Select Directory : ");
+			dirLabel.setFont(new Font("Monospace", Font.PLAIN, 25));
+			dirLabel.setForeground(Color.BLACK);
+			pane1.add(dirLabel);
+			JTextField dirTextfield;
+			String workspace = ResourcesPlugin.getWorkspace().getRoot().getLocation().toString();
+			dirTextfield = new JTextField(workspace);
+			dirTextfield.setPreferredSize(new Dimension(275,35));
+			pane1.add(dirTextfield);
+			JButton dirButton;
+			dirButton = new JButton("browse...");
+			dirButton.setPreferredSize(new Dimension(100,35));
+			dirButton.addActionListener(new ActionListener(){
+				public void actionPerformed(ActionEvent e){
+					fileList(0, dirTextfield);
+				}
+			});
+			pane1.add(dirButton);
+		//adds "Logic File" Label,Text field,and Button to pane1.
+		pane3.setBackground(Color.WHITE);
+			pane3.setLayout(new FlowLayout(FlowLayout.CENTER));
+			JLabel logLabel = new JLabel("Logic File : ");
+			logLabel.setFont(new Font("Monospace", Font.PLAIN, 25));
+			logLabel.setForeground(Color.BLACK);
+			pane3.add(logLabel);
+			JTextField logTextfield;
+		    logTextfield = new JTextField("logic file here");
+		    logTextfield.setPreferredSize(new Dimension(275,35));
+		    pane3.add(logTextfield);
+		    JButton logButton;
+		    logButton = new JButton("browse...");
+		    logButton.setPreferredSize(new Dimension(100,35));
+		    logButton.addActionListener(new ActionListener(){
+			    public void actionPerformed(ActionEvent e){
+			    	fileList(1, logTextfield);
+			    }
+		    });
+		    pane3.add(logButton);
+		//adds "Projected File Path" Label,Text field,and Button to pane1.
 	    pane4.setBackground(Color.WHITE);
 		    pane4.setLayout(new FlowLayout(FlowLayout.CENTER));
 		    JLabel pfpLabel = new JLabel("Projected File Path : ");
@@ -199,7 +203,7 @@ public class Handler extends AbstractHandler {
 		        }
 	        });
 	        pane4.add(pfpButton);
-	    //adds "Create Projected File" Button to pane1.
+		//adds "Create Projected File" Button to pane1.
 	    pane5.setBackground(Color.WHITE);
 	    	JButton goButton;
 	        goButton = new JButton("Create Projected File");
@@ -218,6 +222,12 @@ public class Handler extends AbstractHandler {
 	    frame.add(pane5);
 	    frame.add(pane6);
 	    frame.setVisible(true);
+	}
+	/**
+	 * executes runs the plug-in and related methods.
+	 */
+	public Object execute(ExecutionEvent event) throws ExecutionException {
+		mainGUI();
 	    //plug-in return.
 		return null;
 	}
