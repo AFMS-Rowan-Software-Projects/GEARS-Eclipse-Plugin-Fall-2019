@@ -33,20 +33,23 @@ public class Handler extends AbstractHandler {
 	 */
 	public Handler() {
 	}
-	static File choice = null;
+	static File choice = new File(ResourcesPlugin.getWorkspace().getRoot().getLocation().toString());
+	static File rootDir = new File(ResourcesPlugin.getWorkspace().getRoot().getLocation().toString());;
+	static File logic;
+	static File projDir = new File(ResourcesPlugin.getWorkspace().getRoot().getLocation().toString());;
 	/**
 	 * fileList handles displaying the "browse" menu which shows relevant
 	 * files in the users eclipse workspace and sub-directories.
 	 *
-	 * @param  check: int instruction, tells the method which files should
-	 * be displayed for the user. Pass 0 to display only directories, 
-	 * 1 to display only files, and any other int (ex: 2) to display
-	 * both.
+	 * @param  check: int instruction, tells the method which area
+	 * is being edited by the user. Pass 0 to change the root directory field, 
+	 * 1 (or other) to edit logic file field, and 2 to edit the
+	 * projected directory field.
 	 * @param  textToEdit: JTextField in main GUI that you want to
 	 * make changes to.
 	 * @see	fileList
 	 */
-	public static void fileList(int check, JTextField textToEdit){
+	public static void fileList(int check, JTextField textToEdit, JTextField projTextToEdit){
 		//create empty ArrayLists to hold file and directory names.
 		List<String> files = new ArrayList<>();
         List<String> directories = new ArrayList<>();
@@ -70,14 +73,6 @@ public class Handler extends AbstractHandler {
              int i = 0;
              while(i < directories.size()){
              	labels[i] = directories.get(i);
-             	i++;
-             }
-        }
-        else if(check == 1){
-        	 labels = new String[files.size()];
-             int i = 0;
-             while(i < files.size()){
-             	labels[i] = files.get(i);
              	i++;
              }
         }
@@ -113,12 +108,22 @@ public class Handler extends AbstractHandler {
 	        		if(check==0){ //if only showing files,
 	        			//adjust scrollPane index to correctly map to files.
 	        			choice = listOfFiles[index+files.size()];
+	        			rootDir = choice;
+	        			projDir = choice;
+	        		}
+	        		else if(check==2){
+	        			choice = listOfFiles[index+files.size()];
+	        			projDir = choice;
 	        		}
 	        		else{
 	        			choice = listOfFiles[index];
+	        			logic = choice;
 	        		}
 	        	}
-	        	//set main GUI label (textToEdit) to users chosen file.
+	        	//set main GUI label (textToEdit) to the users chosen file.
+	        	if(check==0){
+	        		projTextToEdit.setText(choice.getAbsolutePath());
+	        	}
 	        	textToEdit.setText(choice.getAbsolutePath());
 	        	f.dispose(); //end
 	        }
@@ -142,6 +147,26 @@ public class Handler extends AbstractHandler {
 		JPanel pane4 = new JPanel();
 		JPanel pane5 = new JPanel();
 		JPanel pane6 = new JPanel();
+		//adds "Projected File Path" Label,Text field,and Button to pane1.
+	    pane4.setBackground(Color.WHITE);
+		    pane4.setLayout(new FlowLayout(FlowLayout.CENTER));
+		    JLabel pfpLabel = new JLabel("Projected File Path : ");
+		    pfpLabel.setFont(new Font("Monospace", Font.PLAIN, 20));
+		    pfpLabel.setForeground(Color.BLACK);
+		    pane4.add(pfpLabel);
+		    JTextField pfpTextfield;
+	        pfpTextfield = new JTextField(projDir.toString());
+	        pfpTextfield.setPreferredSize(new Dimension(275,35));
+	        pane4.add(pfpTextfield);
+	        JButton pfpButton;
+	        pfpButton = new JButton("browse...");
+	        pfpButton.setPreferredSize(new Dimension(100,35));
+	        pfpButton.addActionListener(new ActionListener(){
+		        public void actionPerformed(ActionEvent e){
+		        	fileList(2, pfpTextfield, pfpTextfield);
+		        }
+	        });
+	        pane4.add(pfpButton);
 		//adds "Select Directory" Label,Text field,and Button to pane1.
 		pane1.setBackground(Color.WHITE);
 			pane1.setLayout(new FlowLayout(FlowLayout.CENTER));
@@ -159,7 +184,7 @@ public class Handler extends AbstractHandler {
 			dirButton.setPreferredSize(new Dimension(100,35));
 			dirButton.addActionListener(new ActionListener(){
 				public void actionPerformed(ActionEvent e){
-					fileList(0, dirTextfield);
+					fileList(0, dirTextfield, pfpTextfield);
 				}
 			});
 			pane1.add(dirButton);
@@ -179,30 +204,10 @@ public class Handler extends AbstractHandler {
 		    logButton.setPreferredSize(new Dimension(100,35));
 		    logButton.addActionListener(new ActionListener(){
 			    public void actionPerformed(ActionEvent e){
-			    	fileList(1, logTextfield);
+			    	fileList(1, logTextfield, pfpTextfield);
 			    }
 		    });
 		    pane3.add(logButton);
-		//adds "Projected File Path" Label,Text field,and Button to pane1.
-	    pane4.setBackground(Color.WHITE);
-		    pane4.setLayout(new FlowLayout(FlowLayout.CENTER));
-		    JLabel pfpLabel = new JLabel("Projected File Path : ");
-		    pfpLabel.setFont(new Font("Monospace", Font.PLAIN, 20));
-		    pfpLabel.setForeground(Color.BLACK);
-		    pane4.add(pfpLabel);
-		    JTextField pfpTextfield;
-	        pfpTextfield = new JTextField("output file location");
-	        pfpTextfield.setPreferredSize(new Dimension(275,35));
-	        pane4.add(pfpTextfield);
-	        JButton pfpButton;
-	        pfpButton = new JButton("browse...");
-	        pfpButton.setPreferredSize(new Dimension(100,35));
-	        pfpButton.addActionListener(new ActionListener(){
-		        public void actionPerformed(ActionEvent e){
-		        	fileList(0, pfpTextfield);
-		        }
-	        });
-	        pane4.add(pfpButton);
 		//adds "Create Projected File" Button to pane1.
 	    pane5.setBackground(Color.WHITE);
 	    	JButton goButton;
