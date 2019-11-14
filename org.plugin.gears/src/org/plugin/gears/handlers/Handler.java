@@ -7,9 +7,11 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -33,10 +35,71 @@ public class Handler extends AbstractHandler {
 	 */
 	public Handler() {
 	}
+	//counter for double click monitoring across the GUI.
+	int clickCount = 0;
+	//String name of the currently displayed directory.
+	static String currentDir = ResourcesPlugin.getWorkspace().getRoot().getLocation().toString();
+	//empty ArrayList to hold scroll list labels.
+	static ArrayList<String> labels = new ArrayList<>();
+	//empty ArrayList to hold all files in a root directory.
+	static ArrayList<File> listOfFiles = new ArrayList<>();
+	//empty ArrayLists to hold file and directory names.
+	static ArrayList<String> files = new ArrayList<>();
+    static ArrayList<String> directories = new ArrayList<>();
 	static File choice = new File(ResourcesPlugin.getWorkspace().getRoot().getLocation().toString());
-	static File rootDir = new File(ResourcesPlugin.getWorkspace().getRoot().getLocation().toString());;
+	//Files chosen by the user.
+	static File rootDir = new File(ResourcesPlugin.getWorkspace().getRoot().getLocation().toString());
 	static File logic;
-	static File projDir = new File(ResourcesPlugin.getWorkspace().getRoot().getLocation().toString());;
+	static File projDir = new File(ResourcesPlugin.getWorkspace().getRoot().getLocation().toString());
+	/**
+	 * fileList handles displaying the "browse" menu which shows relevant
+	 * files in the users eclipse workspace and sub-directories.
+	 *
+	 * @param  check: int instruction, tells the method which area
+	 * is being edited by the user. Pass 0 to change the root directory field, 
+	 * 1 (or other) to edit logic file field, and 2 to edit the
+	 * projected directory field.
+	 * @param  input: String file location of the directory whose contents the user
+	 * wants to display. 
+	 * @see	makeList
+	 */
+	public static ArrayList<String> makeList(int check, String input){
+		File folder = new File(input);
+		if(folder.isDirectory()){
+			labels.clear();
+	    	listOfFiles = new ArrayList<File>(Arrays.asList(folder.listFiles()));
+	    	files.clear();
+	    	directories.clear();
+	        //splits listOfFiles into the two string ArrayLists files and directories.
+	        for (int i = 0; i < listOfFiles.size(); i++) {
+	            if (listOfFiles.get(i).isFile()) {
+	                files.add(listOfFiles.get(i).getName());
+	            } else if (listOfFiles.get(i).isDirectory()) {
+	                directories.add(listOfFiles.get(i).getName());
+	            }
+	        }
+	        //fill labels with files, directories, or both, based on check value.
+	        if(check == 0 || check == 2){
+	             int i = 0;
+	             while(i < directories.size()){
+	            	labels.add(directories.get(i));
+	             	i++;
+	             }
+	        }
+	        else{
+	             int i = 0;
+	             while(i<files.size()){
+	            	 labels.add(files.get(i));
+	             	i++;
+	             }
+	             while(i<files.size()+directories.size()){
+		            	labels.add(directories.get(i-files.size()));
+		             	i++;
+		             }
+	        }
+		}
+		return labels;
+	}
 	/**
 	 * fileList handles displaying the "browse" menu which shows relevant
 	 * files in the users eclipse workspace and sub-directories.
@@ -51,72 +114,59 @@ public class Handler extends AbstractHandler {
 	 */
 	public static void fileList(int check, JTextField textToEdit, JTextField projTextToEdit){
 		//create empty ArrayLists to hold file and directory names.
-		List<String> files = new ArrayList<>();
-        List<String> directories = new ArrayList<>();
         //get workspace files, save them in listOfFiles.
-        String workspace = ResourcesPlugin.getWorkspace().getRoot().getLocation().toString();
-    	File folder = new File(workspace);
-    	File[] listOfFiles = folder.listFiles();
-        //splits listOfFiles into the two string ArrayLists files and directories.
-        for (int i = 0; i < listOfFiles.length; i++) {
-            if (listOfFiles[i].isFile()) {
-                files.add(listOfFiles[i].getName());
-            } else if (listOfFiles[i].isDirectory()) {
-                directories.add(listOfFiles[i].getName());
-            }
-        }
-        //create empty array labels to be used in the fileList GUI.
-        String[] labels;
-        //fill labels with files, directories, or both, based on check value.
-        if(check == 0){
-        	 labels = new String[directories.size()];
-             int i = 0;
-             while(i < directories.size()){
-             	labels[i] = directories.get(i);
-             	i++;
-             }
-        }
-        else{
-        	 labels = new String[files.size()+directories.size()];
-             int i = 0;
-             while(i < files.size()){
-             	labels[i] = files.get(i);
-             	i++;
-             }
-             while(i<files.size()+directories.size()){
-             	labels[i] = directories.get(i-files.size());
-             	i++;
-             }
-        }
+        labels = makeList(check, currentDir);
         //fileList GUI components.
         String title = "JList Sample";
         JFrame f = new JFrame(title);
-        JList list = new JList(labels);
+        JList list = new JList(labels.toArray());
         list.setFont(new Font("Monospace", Font.PLAIN, 25));
         JScrollPane scrollPane = new JScrollPane(list);
         Container contentPane = f.getContentPane();
         contentPane.add(scrollPane, BorderLayout.CENTER);
+        //mouseListener detects a double click
+        list.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent evt) {
+            	JList list = (JList)evt.getSource();
+                if (evt.getClickCount() == 2) {
+                    // Double-click detected
+                	int index;
+                	index = list.locationToIndex(evt.getPoint());
+                	if(index!=-1){
+                		if(check==1){
+                    		currentDir = listOfFiles.get(index).getAbsolutePath();
+                    	}
+                    	else{
+                    		currentDir = listOfFiles.get(index+files.size()).getAbsolutePath();
+                    	}
+                		f.dispose();
+                    	fileList(check, textToEdit, projTextToEdit);
+                	}
+                }
+            }
+        });
+        JPanel buttonPane = new JPanel();
         //goButton is a fileList GUI button that registers the file object selected
         //in the scroll list created above (scrollPane).
         JButton goButton;
-        goButton = new JButton("select");
+        goButton = new JButton("Select");
         goButton.setPreferredSize(new Dimension(100,35));
         goButton.addActionListener(new ActionListener(){
 	        public void actionPerformed(ActionEvent e){
 	        	int index = list.getSelectedIndex();
 	        	if(index!=-1){ //if a file is selected.
-	        		if(check==0){ //if only showing files,
+	        		if(check==0){//if choosing root directory
 	        			//adjust scrollPane index to correctly map to files.
-	        			choice = listOfFiles[index+files.size()];
+	        			choice = listOfFiles.get(index+files.size());
 	        			rootDir = choice;
 	        			projDir = choice;
 	        		}
-	        		else if(check==2){
-	        			choice = listOfFiles[index+files.size()];
+	        		else if(check==2){//if choosing projected directory
+	        			choice = listOfFiles.get(index+files.size());
 	        			projDir = choice;
 	        		}
-	        		else{
-	        			choice = listOfFiles[index];
+	        		else{//if choosing logic file
+	        			choice = listOfFiles.get(index);
 	        			logic = choice;
 	        		}
 	        	}
@@ -128,9 +178,24 @@ public class Handler extends AbstractHandler {
 	        	f.dispose(); //end
 	        }
         });
-        contentPane.add(goButton, BorderLayout.PAGE_END);
-        f.setSize(200, 400);
+        JButton cancelButton;
+        cancelButton = new JButton("Cancel");
+        cancelButton.setPreferredSize(new Dimension(100,35));
+        cancelButton.addActionListener(new ActionListener(){
+	        public void actionPerformed(ActionEvent e){
+	        	f.dispose(); //end
+	        }
+        });
+        buttonPane.add(goButton, BorderLayout.LINE_START);
+        buttonPane.add(cancelButton, BorderLayout.LINE_END);
+        contentPane.add(buttonPane, BorderLayout.PAGE_END);
+        JLabel browserLabel = new JLabel(currentDir);
+        browserLabel.setFont(new Font("Monospace", Font.PLAIN, 20));
+        browserLabel.setForeground(Color.BLACK);
+        contentPane.add(browserLabel, BorderLayout.PAGE_START);
+        f.setSize(620,500);
         f.setVisible(true);
+        currentDir = ResourcesPlugin.getWorkspace().getRoot().getLocation().toString();
 	}
 	/**
 	 * mainGUI handles the main GUI window.
