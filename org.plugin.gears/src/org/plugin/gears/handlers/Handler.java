@@ -224,9 +224,9 @@ public class Handler extends AbstractHandler {
 		JPanel pane6 = new JPanel();
 		//adds "Projected File Path" Label,Text field,and Button to pane1.
 	    pane4.setBackground(Color.WHITE);
-		    pane4.setLayout(new FlowLayout(FlowLayout.CENTER));
-		    JLabel pfpLabel = new JLabel("Projected File Path : ");
-		    pfpLabel.setFont(new Font("Monospace", Font.PLAIN, 20));
+		    pane4.setLayout(new FlowLayout(FlowLayout.RIGHT));
+		    JLabel pfpLabel = new JLabel("Projected File Path   ");
+		    pfpLabel.setFont(new Font("Monospace", Font.PLAIN, 22));
 		    pfpLabel.setForeground(Color.BLACK);
 		    pane4.add(pfpLabel);
 		    JTextField pfpTextfield;
@@ -244,9 +244,9 @@ public class Handler extends AbstractHandler {
 	        pane4.add(pfpButton);
 		//adds "Select Directory" Label,Text field,and Button to pane1.
 		pane1.setBackground(Color.WHITE);
-			pane1.setLayout(new FlowLayout(FlowLayout.CENTER));
-			JLabel dirLabel = new JLabel("Select Directory : ");
-			dirLabel.setFont(new Font("Monospace", Font.PLAIN, 25));
+			pane1.setLayout(new FlowLayout(FlowLayout.RIGHT));
+		    JLabel dirLabel = new JLabel("Select Directory        ");
+			dirLabel.setFont(new Font("Monospace", Font.PLAIN, 22));
 			dirLabel.setForeground(Color.BLACK);
 			pane1.add(dirLabel);
 			JTextField dirTextfield;
@@ -265,9 +265,9 @@ public class Handler extends AbstractHandler {
 			pane1.add(dirButton);
 		//adds "Logic File" Label,Text field,and Button to pane1.
 		pane3.setBackground(Color.WHITE);
-			pane3.setLayout(new FlowLayout(FlowLayout.CENTER));
-			JLabel logLabel = new JLabel("Logic File : ");
-			logLabel.setFont(new Font("Monospace", Font.PLAIN, 25));
+			pane3.setLayout(new FlowLayout(FlowLayout.RIGHT));
+		    JLabel logLabel = new JLabel("Logic File                  ");
+			logLabel.setFont(new Font("Monospace", Font.PLAIN, 22));
 			logLabel.setForeground(Color.BLACK);
 			pane3.add(logLabel);
 			JTextField logTextfield;
