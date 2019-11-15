@@ -10,8 +10,15 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Scanner;
+import java.util.regex.Pattern;
+
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -159,7 +166,7 @@ public class Handler extends AbstractHandler {
 	        			//adjust scrollPane index to correctly map to files.
 	        			choice = listOfFiles.get(index+files.size());
 	        			rootDir = choice;
-	        			projDir = choice;
+	        			projDir = choice.getParentFile();
 	        		}
 	        		else if(check==2){//if choosing projected directory
 	        			choice = listOfFiles.get(index+files.size());
@@ -172,7 +179,7 @@ public class Handler extends AbstractHandler {
 	        	}
 	        	//set main GUI label (textToEdit) to the users chosen file.
 	        	if(check==0){
-	        		projTextToEdit.setText(choice.getAbsolutePath());
+	        		projTextToEdit.setText(projDir.getAbsolutePath());
 	        	}
 	        	textToEdit.setText(choice.getAbsolutePath());
 	        	f.dispose(); //end
@@ -195,7 +202,7 @@ public class Handler extends AbstractHandler {
         contentPane.add(browserLabel, BorderLayout.PAGE_START);
         f.setSize(620,500);
         f.setVisible(true);
-        currentDir = ResourcesPlugin.getWorkspace().getRoot().getLocation().toString();
+        
 	}
 	/**
 	 * mainGUI handles the main GUI window.
@@ -240,8 +247,8 @@ public class Handler extends AbstractHandler {
 			dirLabel.setForeground(Color.BLACK);
 			pane1.add(dirLabel);
 			JTextField dirTextfield;
-			String workspace = ResourcesPlugin.getWorkspace().getRoot().getLocation().toString();
-			dirTextfield = new JTextField(workspace);
+
+			dirTextfield = new JTextField(rootDir.getAbsolutePath());
 			dirTextfield.setPreferredSize(new Dimension(275,35));
 			pane1.add(dirTextfield);
 			JButton dirButton;
@@ -278,6 +285,16 @@ public class Handler extends AbstractHandler {
 	    	JButton goButton;
 	        goButton = new JButton("Create Projected File");
 	        goButton.setPreferredSize(new Dimension(300,35));
+	        goButton.addActionListener(new ActionListener(){
+			    public void actionPerformed(ActionEvent e){
+			    	try {
+						project(rootDir);
+					} catch (IOException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+			    }
+		    });
 	        pane5.add(goButton);
 	    //adds "View Projected File" Button to pane1.    
 	    pane6.setBackground(Color.WHITE);
@@ -300,5 +317,107 @@ public class Handler extends AbstractHandler {
 		mainGUI();
 	    //plug-in return.
 		return null;
+	}
+	public static void project(File from) throws IOException
+	{
+		File to = new File(projDir,from.getName() + "_proj");
+		to.mkdir();
+		
+		cloneDir(from, to);
+	}
+	static boolean debug = false;
+	
+	public static void cloneDir(File from, File to) throws IOException
+	{
+		File[] files = from.listFiles();
+		String pattern = "[.]+.*";
+		for(int i = 0; i < files.length; i++)
+		{
+			File temp = new File(to, files[i].getName());
+			if(debug)
+				System.out.println(temp.getName());
+			if(files[i].isDirectory())
+			{
+				if(Pattern.matches(pattern, files[i].getName()))	//if temp is projected directory, modify name and apply projection
+				{
+					temp = new File(to, temp.getName().substring(1));
+					temp.mkdir();
+					//TODO: apply projection
+				}
+				else	//else, create the directory and continue copying recursively
+					temp.mkdir();
+				cloneDir(files[i], temp);
+			}
+			else
+				try
+				{
+					if(Pattern.matches(pattern, files[i].getName()))	//if temp is projected file, modify name and apply projection
+					{
+						temp = new File(to, temp.getName().substring(1));
+						convert(files[i],temp);
+					}
+					else	//else, just copy the file as below
+					{					
+						temp.createNewFile();
+						var source = Paths.get(files[i].toString());
+				        var dest = Paths.get(temp.toString());
+	
+				        try (var fis = Files.newInputStream(source);
+				             var fos = Files.newOutputStream(dest)) {
+	
+				            byte[] buffer = new byte[1024];
+				            int length;
+	
+				            while ((length = fis.read(buffer)) > 0) {
+	
+				                fos.write(buffer, 0, length);
+				            }
+				        }
+					}
+				}
+				catch (IOException e)
+				{
+				    e.printStackTrace();
+				}
+		}
+		
+	}
+
+	public static File convert(File codeFile, File newFile) throws IOException 
+	{		
+		Scanner sc = new Scanner(codeFile);
+		FileWriter fw = new FileWriter (newFile);
+		
+		int deleteTagStatus = 0;
+		//int and not boolean to account for future possibilities such as
+		//conditionally deleting parts of the line of code after I gain access
+		//to the logic files
+		
+		
+		while (sc.hasNextLine()) {
+			String currLine = sc.nextLine();
+			if(currLine.contains("//Delete")) {
+				if(deleteTagStatus == 0) {
+					deleteTagStatus = 1;
+					if(debug)
+						System.out.println("Found Tag, deleting lines");
+				} else {
+					deleteTagStatus = 0;
+					if(debug)
+						System.out.println("Found Tag, saving lines");
+				}
+			} else {
+				if(deleteTagStatus == 0) {
+					if(debug)
+						System.out.println("Keep this line");
+					fw.write(currLine + "\n");
+				} else if(debug)
+						System.out.println("Delete this line");
+			}
+		}
+		
+		fw.close();
+		sc.close();
+		return newFile;
 	}
 }
