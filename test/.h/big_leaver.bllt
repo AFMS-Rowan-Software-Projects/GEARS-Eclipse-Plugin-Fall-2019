@@ -1,0 +1,5 @@
+When (Capablities >={CAP1})
+  Select”h_var”; 
+When (Capablities >= {CAP2})
+  Select "x_var";
+
