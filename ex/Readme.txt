@@ -1,1 +1,0 @@
-This is a mock directory for testing out recursive projection. If you want to use this with the virtual plugin, you'll need to put this directory in your virtual eclipse workspace.
