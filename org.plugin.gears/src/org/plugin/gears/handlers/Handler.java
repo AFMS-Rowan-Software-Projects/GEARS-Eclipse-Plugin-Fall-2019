@@ -12,7 +12,10 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -310,14 +313,7 @@ public class Handler extends AbstractHandler {
 	    frame.add(pane6);
 	    frame.setVisible(true);
 	}
-	/**
-	 * executes runs the plug-in and related methods.
-	 */
-	public Object execute(ExecutionEvent event) throws ExecutionException {
-		mainGUI();
-	    //plug-in return.
-		return null;
-	}
+	
 	public static void project(File from) throws IOException
 	{
 		File to = new File(projDir,from.getName() + "_proj");
@@ -359,11 +355,11 @@ public class Handler extends AbstractHandler {
 					else	//else, just copy the file as below
 					{					
 						temp.createNewFile();
-						var source = Paths.get(files[i].toString());
-				        var dest = Paths.get(temp.toString());
+						Path source = Paths.get(files[i].toString());
+				        Path dest = Paths.get(temp.toString());
 	
-				        try (var fis = Files.newInputStream(source);
-				             var fos = Files.newOutputStream(dest)) {
+				        try (InputStream fis = Files.newInputStream(source);
+				             OutputStream fos = Files.newOutputStream(dest)) {
 	
 				            byte[] buffer = new byte[1024];
 				            int length;
@@ -419,5 +415,13 @@ public class Handler extends AbstractHandler {
 		fw.close();
 		sc.close();
 		return newFile;
+	}
+	/**
+	 * executes runs the plug-in and related methods.
+	 */
+	public Object execute(ExecutionEvent event) throws ExecutionException {
+		mainGUI();
+	    //plug-in return.
+		return null;
 	}
 }
