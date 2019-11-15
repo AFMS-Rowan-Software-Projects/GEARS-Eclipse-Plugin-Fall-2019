@@ -10,15 +10,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Scanner;
-import java.util.regex.Pattern;
-
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -202,7 +195,6 @@ public class Handler extends AbstractHandler {
         contentPane.add(browserLabel, BorderLayout.PAGE_START);
         f.setSize(620,500);
         f.setVisible(true);
-        
 	}
 	/**
 	 * mainGUI handles the main GUI window.
@@ -247,7 +239,6 @@ public class Handler extends AbstractHandler {
 			dirLabel.setForeground(Color.BLACK);
 			pane1.add(dirLabel);
 			JTextField dirTextfield;
-
 			dirTextfield = new JTextField(rootDir.getAbsolutePath());
 			dirTextfield.setPreferredSize(new Dimension(275,35));
 			pane1.add(dirTextfield);
@@ -285,16 +276,6 @@ public class Handler extends AbstractHandler {
 	    	JButton goButton;
 	        goButton = new JButton("Create Projected File");
 	        goButton.setPreferredSize(new Dimension(300,35));
-	        goButton.addActionListener(new ActionListener(){
-			    public void actionPerformed(ActionEvent e){
-			    	try {
-						project(rootDir);
-					} catch (IOException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
-			    }
-		    });
 	        pane5.add(goButton);
 	    //adds "View Projected File" Button to pane1.    
 	    pane6.setBackground(Color.WHITE);
@@ -318,11 +299,9 @@ public class Handler extends AbstractHandler {
 	    //plug-in return.
 		return null;
 	}
-	public static void project(File from) throws IOException
 	{
 		File to = new File(projDir,from.getName() + "_proj");
 		to.mkdir();
-		
 		cloneDir(from, to);
 	}
 	static boolean debug = false;
