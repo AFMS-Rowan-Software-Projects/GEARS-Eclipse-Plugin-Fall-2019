@@ -27,9 +27,13 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
@@ -61,6 +65,8 @@ public class Handler extends AbstractHandler {
 	static File rootDir = new File(ResourcesPlugin.getWorkspace().getRoot().getLocation().toString());
 	static File logic;
 	static File projDir = new File(ResourcesPlugin.getWorkspace().getRoot().getLocation().toString());
+	static int size = 0;
+	static int runCount = 0;
 	/**
 	 * fileList handles displaying the "browse" menu which shows relevant
 	 * files in the users eclipse workspace and sub-directories.
@@ -73,6 +79,17 @@ public class Handler extends AbstractHandler {
 	 * wants to display. 
 	 * @see	makeList
 	 */
+	public static void getSize(File tempDir){
+		int index = 0;
+		File[] tempArray = tempDir.listFiles();
+		while(index<tempArray.length){
+			size++;
+			if(tempArray[index].isDirectory()){
+				getSize(tempArray[index]);
+			}
+			index++;
+		}
+	}
 	public static ArrayList<String> makeList(int check, String input){
 		File folder = new File(input);
 		if(folder.isDirectory()){
@@ -199,11 +216,27 @@ public class Handler extends AbstractHandler {
         buttonPane.add(goButton, BorderLayout.LINE_START);
         buttonPane.add(cancelButton, BorderLayout.LINE_END);
         contentPane.add(buttonPane, BorderLayout.PAGE_END);
+        JPanel toppane = new JPanel();
         JLabel browserLabel = new JLabel(currentDir);
+        JButton backButton;
+        backButton = new JButton("🡄 back");
+        backButton.setPreferredSize(new Dimension(100,35));
+        backButton.addActionListener(new ActionListener(){
+	        public void actionPerformed(ActionEvent e){
+	        	File temp = new File(currentDir);
+	        	temp = temp.getParentFile();
+	        	currentDir = temp.getAbsolutePath();
+	        	fileList(check, textToEdit, projTextToEdit);
+	        	f.dispose();
+	        }
+        });
         browserLabel.setFont(new Font("Monospace", Font.PLAIN, 20));
         browserLabel.setForeground(Color.BLACK);
-        contentPane.add(browserLabel, BorderLayout.PAGE_START);
-        f.setSize(620,500);
+        toppane = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        toppane.add(backButton);
+        toppane.add(browserLabel);
+        contentPane.add(toppane, BorderLayout.PAGE_START);
+        f.setSize(620,400);
         f.setVisible(true);
         
 	}
@@ -213,12 +246,11 @@ public class Handler extends AbstractHandler {
 	public static void mainGUI(){
 		//main GUI components.
 		JFrame frame = new JFrame("GEARS interface");
-		frame.setSize(620,500);
+		frame.setSize(620,400);
 		//below layout aligns added panels vertically in the GUI.
 		frame.setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.Y_AXIS));
 		//creates placeholder panels for GUI items.
 		JPanel pane1 = new JPanel();
-		JPanel pane3 = new JPanel();
 		JPanel pane4 = new JPanel();
 		JPanel pane5 = new JPanel();
 		JPanel pane6 = new JPanel();
@@ -262,52 +294,48 @@ public class Handler extends AbstractHandler {
 					fileList(0, dirTextfield, pfpTextfield);
 				}
 			});
-			pane1.add(dirButton);
-		//adds "Logic File" Label,Text field,and Button to pane1.
-		pane3.setBackground(Color.WHITE);
-			pane3.setLayout(new FlowLayout(FlowLayout.RIGHT));
-		    JLabel logLabel = new JLabel("Logic File                  ");
-			logLabel.setFont(new Font("Monospace", Font.PLAIN, 22));
-			logLabel.setForeground(Color.BLACK);
-			pane3.add(logLabel);
-			JTextField logTextfield;
-		    logTextfield = new JTextField("logic file here");
-		    logTextfield.setPreferredSize(new Dimension(275,35));
-		    pane3.add(logTextfield);
-		    JButton logButton;
-		    logButton = new JButton("browse...");
-		    logButton.setPreferredSize(new Dimension(100,35));
-		    logButton.addActionListener(new ActionListener(){
-			    public void actionPerformed(ActionEvent e){
-			    	fileList(1, logTextfield, pfpTextfield);
-			    }
-		    });
-		    pane3.add(logButton);
-		//adds "Create Projected File" Button to pane1.
+			pane1.add(dirButton);  
+	    pane6.setBackground(Color.WHITE);
+	    //adds "Create Projected File" Button to pane1.
 	    pane5.setBackground(Color.WHITE);
-	    	JButton goButton;
-	        goButton = new JButton("Create Projected File");
-	        goButton.setPreferredSize(new Dimension(300,35));
-	        goButton.addActionListener(new ActionListener(){
-			    public void actionPerformed(ActionEvent e){
-			    	try {
-						project(rootDir);
+		 	JButton goButton;
+		    goButton = new JButton("Create Projected File");
+		    goButton.setPreferredSize(new Dimension(300,35));
+		    goButton.addActionListener(new ActionListener(){
+				public void actionPerformed(ActionEvent e){
+					try {
+							project(rootDir);
+							getSize(rootDir);
+							JProgressBar pb = new JProgressBar();
+					        pb.setMinimum(0);
+					        pb.setMaximum(size);
+					        pb.setStringPainted(true);
+					        pb.setPreferredSize(new Dimension(500,35));
+							pane6.add(pb);
+							pane6.revalidate();
+							
+							for (int i = 0; i <= size; i++) {
+								i = runCount;
+					            try {
+					                SwingUtilities.invokeLater(new Runnable() {
+					                    public void run() {
+					                        pb.setValue(runCount);
+					                    }
+					                });
+					                java.lang.Thread.sleep(100);
+					            } catch (InterruptedException p) {
+					                JOptionPane.showMessageDialog(frame, p.getMessage());
+					            }
+					        }
 					} catch (IOException e1) {
 						// TODO Auto-generated catch block
 						e1.printStackTrace();
 					}
-			    }
-		    });
-	        pane5.add(goButton);
-	    //adds "View Projected File" Button to pane1.    
-	    pane6.setBackground(Color.WHITE);
-		    JButton showButton;
-	        showButton = new JButton("View Projected File");
-	        showButton.setPreferredSize(new Dimension(300,35));
-	        pane6.add(showButton);
+				}
+			});
+		    pane5.add(goButton);
         //adding all components to main GUI frame.
 	    frame.add(pane1);
-	    frame.add(pane3);
 	    frame.add(pane4);
 	    frame.add(pane5);
 	    frame.add(pane6);
@@ -330,6 +358,7 @@ public class Handler extends AbstractHandler {
 		for(int i = 0; i < files.length; i++)
 		{
 			File temp = new File(to, files[i].getName());
+			runCount++;
 			if(debug)
 				System.out.println(temp.getName());
 			if(files[i].isDirectory())
