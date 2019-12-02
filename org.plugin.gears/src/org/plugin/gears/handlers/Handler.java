@@ -344,17 +344,39 @@ public class Handler extends AbstractHandler {
 	
 	public static void project(File from) throws IOException
 	{
-		File to = new File(projDir,from.getName() + "_proj");
-		to.mkdir();
-		
-		cloneDir(from, to);
+		checkVar(from);
 	}
 	static boolean debug = false;
 	
-	public static void cloneDir(File from, File to) throws IOException
+	public static void checkVar(File dir) throws IOException
+	{
+		boolean isVar = false;
+		String pattern = "[.]+.*";
+		String name = dir.getName();
+		File temp = null;
+		if(Pattern.matches(pattern, name))	//if name matches the pattern, a variant directory or a variant FILE directory
+		{
+			isVar = true;
+			if(name.length()<4) //this is a slight concession, but if a File object matches the pattern, it must be a variant directory, because _cpp and _java variants will have to have longer names.
+				temp = applyDirectoryProjection(dir, projDir);
+			else if(name.substring(name.length()-4,name.length()).equals("_cpp")) //if the end of the directory has _cpp, it's a variant file directory. Could include logic here for _java.
+				temp = applyFileProjection(dir, projDir);
+			else //it is safe to assume a File object that matches the pattern but doesn't have _cpp or _java, it is a directory.
+				temp = applyDirectoryProjection(dir, projDir);
+			isVar = true;
+		}
+		else
+		{
+			temp = new File(projDir,dir.getName() + "_proj");
+			temp.mkdir();
+		}
+		if(temp.isDirectory())
+			cloneDir(dir,temp,isVar);
+	}
+	
+	public static void cloneDir(File from, File to, boolean projectDirectory) throws IOException
 	{
 		File[] files = from.listFiles();
-		String pattern = "[.]+.*";
 		for(int i = 0; i < files.length; i++)
 		{
 			File temp = new File(to, files[i].getName());
@@ -363,40 +385,49 @@ public class Handler extends AbstractHandler {
 				System.out.println(temp.getName());
 			if(files[i].isDirectory())
 			{
-				if(Pattern.matches(pattern, files[i].getName()))	//if temp is projected directory, modify name and apply projection
+				String pattern = "[.]+.*";
+				String name = files[i].getName();
+				if(Pattern.matches(pattern, name))	//if name matches the pattern, it's either a variant directory or a variant FILE directory
 				{
-					temp = new File(to, temp.getName().substring(1));
-					temp.mkdir();
-					//TODO: apply projection
+					
+					if(name.length()<4) //this is a slight concession, but if a File object matches the pattern, it must be a variant directory, because _cpp and _java variants will have to have longer names.
+						temp = applyDirectoryProjection(files[i], to);
+					else if(name.substring(name.length()-4,name.length()).equals("_cpp")) //if the end of the directory has _cpp, it's a variant file directory. Could include logic here for _java.
+						temp = applyFileProjection(files[i], to);
+					else //it is safe to assume a File object that matches the pattern but doesn't have _cpp or _java, it is a directory.
+						temp = applyDirectoryProjection(files[i], to);
+					if(temp.isDirectory())
+						cloneDir(files[i],temp,true);
 				}
-				else	//else, create the directory and continue copying recursively
-					temp.mkdir();
-				cloneDir(files[i], temp);
+				else	//else continue recursing
+				{
+					if(projectDirectory) //With this, the directory will be cloned but not copied to the projection. This essentially turns the ".h" and "h_var" file hierarchy into the projected version, which is just "h"
+						cloneDir(files[i],temp.getParentFile(),false);
+					else //Otherwise, clone and copy the directory. This will copy the directory exactly as it is in the variant path.
+					{
+						temp.mkdir();
+						cloneDir(files[i], temp, false);
+					}
+				}
 			}
 			else
 				try
-				{
-					if(Pattern.matches(pattern, files[i].getName()))	//if temp is projected file, modify name and apply projection
+				{	
+					if(!files[i].getName().contains("big_leaver"))
 					{
-						temp = new File(to, temp.getName().substring(1));
-						convert(files[i],temp);
-					}
-					else	//else, just copy the file as below
-					{					
 						temp.createNewFile();
 						Path source = Paths.get(files[i].toString());
 				        Path dest = Paths.get(temp.toString());
 	
 				        try (InputStream fis = Files.newInputStream(source);
-				             OutputStream fos = Files.newOutputStream(dest)) {
+				             OutputStream fos = Files.newOutputStream(dest)) 
+				        {
 	
 				            byte[] buffer = new byte[1024];
 				            int length;
 	
-				            while ((length = fis.read(buffer)) > 0) {
-	
+				            while ((length = fis.read(buffer)) > 0)
 				                fos.write(buffer, 0, length);
-				            }
 				        }
 					}
 				}
@@ -408,6 +439,74 @@ public class Handler extends AbstractHandler {
 		
 	}
 
+	/**
+	 * applyFileProjection projects a single file from a single variant file 
+	 * directory. variant file directories should contain ONLY two files: 
+	 * big_leaver.bllt and the single variant file.
+	 * @param from
+	 * @throws IOException 
+	 */
+	public static File applyFileProjection(File from, File to) throws IOException
+	{
+		
+		File[] files = from.listFiles();
+		File BL = null;
+		File cppVar = null;
+		for(int i = 0; i < files.length; i++)
+		{
+			if(files[i].getName().contains("big_leaver"))
+				BL = files[i];
+			if(files[i].getName().contains(".cpp"))
+				cppVar = files[i];
+		}
+		//TODO: read big_leaver and based on its contents, decide what files to project
+		//For now, we decide just to project the variant file assuming all tags are
+		//slated for deletion
+		
+		if(cppVar == null)
+		{
+			System.err.println("NO VARIANT FILE DETECTED IN " + from.getAbsolutePath());
+			return null;
+		}
+		
+		File temp = convert(cppVar, new File(to,from.getName().substring(1,from.getName().length()-4) + ".cpp"));
+		temp.createNewFile();
+		return temp;
+	}
+	
+	/**
+	 * applyDirectoryProjection projects a single directory from a single variant 
+	 * file directory. variant file directories currently ONLY support two files: 
+	 * big_leaver.bllt and the single variant directory.
+	 * @param from: The variant file directory.
+	 * @param to: The directory to project to.
+	 * @throws IOException
+	 */
+	public static File applyDirectoryProjection(File from, File to) throws IOException
+	{
+		File[] files = from.listFiles();
+		File BL = null;
+		File dirVar = null;
+		for(int i = 0; i < files.length; i++)
+		{
+			if(files[i].getName().contains("big_leaver"))
+				BL = files[i];
+			if(files[i].getName().contains("_var"))
+				dirVar = files[i];
+		}
+		//TODO: read big_leaver and based on its contents, decide what files to project
+		//For now, we decide just to project the variant file assuming all tags are
+		//slated for deletion
+		if(dirVar == null)
+		{
+			System.err.println("NO VARIANT DIRECTORY DETECTED IN " + from.getAbsolutePath());
+			return null;
+		}
+		File temp = new File(to, from.getName().substring(1));
+		temp.mkdir();
+		return temp;
+	}
+	
 	public static File convert(File codeFile, File newFile) throws IOException 
 	{		
 		Scanner sc = new Scanner(codeFile);
