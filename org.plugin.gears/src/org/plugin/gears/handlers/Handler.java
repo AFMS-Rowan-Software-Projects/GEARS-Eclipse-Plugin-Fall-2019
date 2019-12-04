@@ -318,15 +318,12 @@ public class Handler extends AbstractHandler {
 							while(i<size) {
 								i = runCount;
 					            try {
-					                SwingUtilities.invokeLater(new Runnable() {
-					                    public void run() {
-					                        pb.setValue(runCount);
-					                        pb.revalidate();
-					                        pane6.revalidate();
-					                    }
-					                });
+					            	pb.setValue(runCount);
+			                        pb.revalidate();
+			                        pane6.revalidate();
 					                java.lang.Thread.sleep(1);
-					            } catch (InterruptedException p) {
+					                }
+					             catch (InterruptedException p) {
 					                JOptionPane.showMessageDialog(frame, p.getMessage());
 					            }
 					        }
