@@ -10,16 +10,30 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Scanner;
+import java.util.regex.Pattern;
+
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
@@ -51,6 +65,8 @@ public class Handler extends AbstractHandler {
 	static File rootDir = new File(ResourcesPlugin.getWorkspace().getRoot().getLocation().toString());
 	static File logic;
 	static File projDir = new File(ResourcesPlugin.getWorkspace().getRoot().getLocation().toString());
+	static int size = 0;
+	static int runCount = 0;
 	/**
 	 * fileList handles displaying the "browse" menu which shows relevant
 	 * files in the users eclipse workspace and sub-directories.
@@ -63,6 +79,17 @@ public class Handler extends AbstractHandler {
 	 * wants to display. 
 	 * @see	makeList
 	 */
+	public static void getSize(File tempDir){
+		int index = 0;
+		File[] tempArray = tempDir.listFiles();
+		while(index<tempArray.length){
+			size++;
+			if(tempArray[index].isDirectory()){
+				getSize(tempArray[index]);
+			}
+			index++;
+		}
+	}
 	public static ArrayList<String> makeList(int check, String input){
 		File folder = new File(input);
 		if(folder.isDirectory()){
@@ -189,12 +216,29 @@ public class Handler extends AbstractHandler {
         buttonPane.add(goButton, BorderLayout.LINE_START);
         buttonPane.add(cancelButton, BorderLayout.LINE_END);
         contentPane.add(buttonPane, BorderLayout.PAGE_END);
+        JPanel toppane = new JPanel();
         JLabel browserLabel = new JLabel(currentDir);
+        JButton backButton;
+        backButton = new JButton("back");
+        backButton.setPreferredSize(new Dimension(100,35));
+        backButton.addActionListener(new ActionListener(){
+	        public void actionPerformed(ActionEvent e){
+	        	File temp = new File(currentDir);
+	        	temp = temp.getParentFile();
+	        	currentDir = temp.getAbsolutePath();
+	        	fileList(check, textToEdit, projTextToEdit);
+	        	f.dispose();
+	        }
+        });
         browserLabel.setFont(new Font("Monospace", Font.PLAIN, 20));
         browserLabel.setForeground(Color.BLACK);
-        contentPane.add(browserLabel, BorderLayout.PAGE_START);
-        f.setSize(620,500);
+        toppane = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        toppane.add(backButton);
+        toppane.add(browserLabel);
+        contentPane.add(toppane, BorderLayout.PAGE_START);
+        f.setSize(620,400);
         f.setVisible(true);
+        
 	}
 	/**
 	 * mainGUI handles the main GUI window.
@@ -202,20 +246,19 @@ public class Handler extends AbstractHandler {
 	public static void mainGUI(){
 		//main GUI components.
 		JFrame frame = new JFrame("GEARS interface");
-		frame.setSize(620,500);
+		frame.setSize(620,400);
 		//below layout aligns added panels vertically in the GUI.
 		frame.setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.Y_AXIS));
 		//creates placeholder panels for GUI items.
 		JPanel pane1 = new JPanel();
-		JPanel pane3 = new JPanel();
 		JPanel pane4 = new JPanel();
 		JPanel pane5 = new JPanel();
 		JPanel pane6 = new JPanel();
 		//adds "Projected File Path" Label,Text field,and Button to pane1.
 	    pane4.setBackground(Color.WHITE);
-		    pane4.setLayout(new FlowLayout(FlowLayout.CENTER));
-		    JLabel pfpLabel = new JLabel("Projected File Path : ");
-		    pfpLabel.setFont(new Font("Monospace", Font.PLAIN, 20));
+		    pane4.setLayout(new FlowLayout(FlowLayout.RIGHT));
+		    JLabel pfpLabel = new JLabel("Projected File Path   ");
+		    pfpLabel.setFont(new Font("Monospace", Font.PLAIN, 22));
 		    pfpLabel.setForeground(Color.BLACK);
 		    pane4.add(pfpLabel);
 		    JTextField pfpTextfield;
@@ -233,12 +276,13 @@ public class Handler extends AbstractHandler {
 	        pane4.add(pfpButton);
 		//adds "Select Directory" Label,Text field,and Button to pane1.
 		pane1.setBackground(Color.WHITE);
-			pane1.setLayout(new FlowLayout(FlowLayout.CENTER));
-			JLabel dirLabel = new JLabel("Select Directory : ");
-			dirLabel.setFont(new Font("Monospace", Font.PLAIN, 25));
+			pane1.setLayout(new FlowLayout(FlowLayout.RIGHT));
+		    JLabel dirLabel = new JLabel("Select Directory        ");
+			dirLabel.setFont(new Font("Monospace", Font.PLAIN, 22));
 			dirLabel.setForeground(Color.BLACK);
 			pane1.add(dirLabel);
 			JTextField dirTextfield;
+
 			dirTextfield = new JTextField(rootDir.getAbsolutePath());
 			dirTextfield.setPreferredSize(new Dimension(275,35));
 			pane1.add(dirTextfield);
@@ -250,46 +294,156 @@ public class Handler extends AbstractHandler {
 					fileList(0, dirTextfield, pfpTextfield);
 				}
 			});
-			pane1.add(dirButton);
-		//adds "Logic File" Label,Text field,and Button to pane1.
-		pane3.setBackground(Color.WHITE);
-			pane3.setLayout(new FlowLayout(FlowLayout.CENTER));
-			JLabel logLabel = new JLabel("Logic File : ");
-			logLabel.setFont(new Font("Monospace", Font.PLAIN, 25));
-			logLabel.setForeground(Color.BLACK);
-			pane3.add(logLabel);
-			JTextField logTextfield;
-		    logTextfield = new JTextField("logic file here");
-		    logTextfield.setPreferredSize(new Dimension(275,35));
-		    pane3.add(logTextfield);
-		    JButton logButton;
-		    logButton = new JButton("browse...");
-		    logButton.setPreferredSize(new Dimension(100,35));
-		    logButton.addActionListener(new ActionListener(){
-			    public void actionPerformed(ActionEvent e){
-			    	fileList(1, logTextfield, pfpTextfield);
-			    }
-		    });
-		    pane3.add(logButton);
-		//adds "Create Projected File" Button to pane1.
-	    pane5.setBackground(Color.WHITE);
-	    	JButton goButton;
-	        goButton = new JButton("Create Projected File");
-	        goButton.setPreferredSize(new Dimension(300,35));
-	        pane5.add(goButton);
-	    //adds "View Projected File" Button to pane1.    
+			pane1.add(dirButton);  
 	    pane6.setBackground(Color.WHITE);
-		    JButton showButton;
-	        showButton = new JButton("View Projected File");
-	        showButton.setPreferredSize(new Dimension(300,35));
-	        pane6.add(showButton);
+	    //adds "Create Projected File" Button to pane1.
+	    pane5.setBackground(Color.WHITE);
+		 	JButton goButton;
+		    goButton = new JButton("Create Projected File");
+		    goButton.setPreferredSize(new Dimension(300,35));
+		    goButton.addActionListener(new ActionListener(){
+				public void actionPerformed(ActionEvent e){
+					try {
+							project(rootDir);
+							getSize(rootDir);
+							JProgressBar pb = new JProgressBar();
+					        pb.setMinimum(0);
+					        pb.setMaximum(size);
+					        pb.setStringPainted(true);
+					        pb.setPreferredSize(new Dimension(500,35));
+							pane6.add(pb);
+							pane6.revalidate();
+							
+							for (int i = 0; i <= size; i++) {
+								i = runCount;
+					            try {
+					                SwingUtilities.invokeLater(new Runnable() {
+					                    public void run() {
+					                        pb.setValue(runCount);
+					                    }
+					                });
+					                java.lang.Thread.sleep(100);
+					            } catch (InterruptedException p) {
+					                JOptionPane.showMessageDialog(frame, p.getMessage());
+					            }
+					        }
+					} catch (IOException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+				}
+			});
+		    pane5.add(goButton);
         //adding all components to main GUI frame.
 	    frame.add(pane1);
-	    frame.add(pane3);
 	    frame.add(pane4);
 	    frame.add(pane5);
 	    frame.add(pane6);
 	    frame.setVisible(true);
+	}
+	
+	public static void project(File from) throws IOException
+	{
+		File to = new File(projDir,from.getName() + "_proj");
+		to.mkdir();
+		
+		cloneDir(from, to);
+	}
+	static boolean debug = false;
+	
+	public static void cloneDir(File from, File to) throws IOException
+	{
+		File[] files = from.listFiles();
+		String pattern = "[.]+.*";
+		for(int i = 0; i < files.length; i++)
+		{
+			File temp = new File(to, files[i].getName());
+			runCount++;
+			if(debug)
+				System.out.println(temp.getName());
+			if(files[i].isDirectory())
+			{
+				if(Pattern.matches(pattern, files[i].getName()))	//if temp is projected directory, modify name and apply projection
+				{
+					temp = new File(to, temp.getName().substring(1));
+					temp.mkdir();
+					//TODO: apply projection
+				}
+				else	//else, create the directory and continue copying recursively
+					temp.mkdir();
+				cloneDir(files[i], temp);
+			}
+			else
+				try
+				{
+					if(Pattern.matches(pattern, files[i].getName()))	//if temp is projected file, modify name and apply projection
+					{
+						temp = new File(to, temp.getName().substring(1));
+						convert(files[i],temp);
+					}
+					else	//else, just copy the file as below
+					{					
+						temp.createNewFile();
+						Path source = Paths.get(files[i].toString());
+				        Path dest = Paths.get(temp.toString());
+	
+				        try (InputStream fis = Files.newInputStream(source);
+				             OutputStream fos = Files.newOutputStream(dest)) {
+	
+				            byte[] buffer = new byte[1024];
+				            int length;
+	
+				            while ((length = fis.read(buffer)) > 0) {
+	
+				                fos.write(buffer, 0, length);
+				            }
+				        }
+					}
+				}
+				catch (IOException e)
+				{
+				    e.printStackTrace();
+				}
+		}
+		
+	}
+
+	public static File convert(File codeFile, File newFile) throws IOException 
+	{		
+		Scanner sc = new Scanner(codeFile);
+		FileWriter fw = new FileWriter (newFile);
+		
+		int deleteTagStatus = 0;
+		//int and not boolean to account for future possibilities such as
+		//conditionally deleting parts of the line of code after I gain access
+		//to the logic files
+		
+		
+		while (sc.hasNextLine()) {
+			String currLine = sc.nextLine();
+			if(currLine.contains("//Delete")) {
+				if(deleteTagStatus == 0) {
+					deleteTagStatus = 1;
+					if(debug)
+						System.out.println("Found Tag, deleting lines");
+				} else {
+					deleteTagStatus = 0;
+					if(debug)
+						System.out.println("Found Tag, saving lines");
+				}
+			} else {
+				if(deleteTagStatus == 0) {
+					if(debug)
+						System.out.println("Keep this line");
+					fw.write(currLine + "\n");
+				} else if(debug)
+						System.out.println("Delete this line");
+			}
+		}
+		
+		fw.close();
+		sc.close();
+		return newFile;
 	}
 	/**
 	 * executes runs the plug-in and related methods.
