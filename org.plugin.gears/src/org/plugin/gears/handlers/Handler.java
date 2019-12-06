@@ -322,29 +322,14 @@ public class Handler extends AbstractHandler {
 					        pb.setMaximum(size);
 					        pb.setStringPainted(true);
 					        pb.setPreferredSize(new Dimension(500,35));
-<<<<<<< Updated upstream
 					        pane6.removeAll();					    
 							pane6.add(pb);
 							pane6.revalidate();
-							int i = 0;
-							while(i<size) {
-								i = runCount;
-					            try {
-					            	pb.setValue(runCount);
-			                        pb.revalidate();
-			                        pane6.revalidate();
-					                java.lang.Thread.sleep(1);
-					                }
-					             catch (InterruptedException p) {
-					                JOptionPane.showMessageDialog(frame, p.getMessage());
-					            }
-					        }
-=======
+
 					        pane6.removeAll();
 							pane6.add(pb);
 							pane6.revalidate();
 							project(rootDir);
->>>>>>> Stashed changes
 					} catch (IOException e1) {
 						// TODO Auto-generated catch block
 						e1.printStackTrace();
@@ -401,14 +386,9 @@ public class Handler extends AbstractHandler {
 		{
 			File temp = new File(to, files[i].getName());
 			runCount++;
-<<<<<<< Updated upstream
-			System.out.println(runCount);
-			System.out.println(temp.getName());
-=======
 			pb.setValue(runCount);
 			if(debug)
 				System.out.println(temp.getName());
->>>>>>> Stashed changes
 			if(files[i].isDirectory())
 			{
 				String pattern = "[.]+.*";
@@ -481,10 +461,7 @@ public class Handler extends AbstractHandler {
 		for(int i = 0; i < files.length; i++)
 		{
 			runCount++;
-<<<<<<< Updated upstream
-=======
 			pb.setValue(runCount);
->>>>>>> Stashed changes
 			if(files[i].getName().contains("big_leaver"))
 				BL = files[i];
 			if(files[i].getName().contains(".cpp"))
