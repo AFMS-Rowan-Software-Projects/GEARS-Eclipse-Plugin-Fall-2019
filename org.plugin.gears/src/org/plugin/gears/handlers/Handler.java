@@ -33,6 +33,7 @@ import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import javax.swing.border.EmptyBorder;
 
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
@@ -65,6 +66,7 @@ public class Handler extends AbstractHandler {
 	static File rootDir = new File(ResourcesPlugin.getWorkspace().getRoot().getLocation().toString());
 	static File logic;
 	static File projDir = new File(ResourcesPlugin.getWorkspace().getRoot().getLocation().toString());
+	static JProgressBar pb = new JProgressBar();
 	static int size = 0;
 	static int runCount = 0;
 	/**
@@ -144,7 +146,7 @@ public class Handler extends AbstractHandler {
         //get workspace files, save them in listOfFiles.
         labels = makeList(check, currentDir);
         //fileList GUI components.
-        String title = "JList Sample";
+        String title = "GEARS browser";
         JFrame f = new JFrame(title);
         JList list = new JList(labels.toArray());
         list.setFont(new Font("Monospace", Font.PLAIN, 25));
@@ -254,16 +256,26 @@ public class Handler extends AbstractHandler {
 		JPanel pane4 = new JPanel();
 		JPanel pane5 = new JPanel();
 		JPanel pane6 = new JPanel();
+		JPanel title = new JPanel();
+		//adds title panel
+		title.setBackground(Color.white);
+	    	title.setLayout(new FlowLayout(FlowLayout.LEFT));
+	    	title.setBorder(new EmptyBorder(10, 0, 0, 0));
+	    	JLabel titleLabel = new JLabel(" GEARS   ");
+	    	titleLabel.setFont(new Font("Monospace", Font.PLAIN, 35));
+	    	titleLabel.setForeground(new Color(105,0,204));
+	    	title.add(titleLabel);
 		//adds "Projected File Path" Label,Text field,and Button to pane1.
-	    pane4.setBackground(Color.WHITE);
+	    pane4.setBackground(Color.white);
 		    pane4.setLayout(new FlowLayout(FlowLayout.RIGHT));
-		    JLabel pfpLabel = new JLabel("Projected File Path   ");
+		    JLabel pfpLabel = new JLabel("Projected File Path  ");
 		    pfpLabel.setFont(new Font("Monospace", Font.PLAIN, 22));
 		    pfpLabel.setForeground(Color.BLACK);
 		    pane4.add(pfpLabel);
 		    JTextField pfpTextfield;
 	        pfpTextfield = new JTextField(projDir.toString());
 	        pfpTextfield.setPreferredSize(new Dimension(275,35));
+	        pfpTextfield.setEditable(false);
 	        pane4.add(pfpTextfield);
 	        JButton pfpButton;
 	        pfpButton = new JButton("browse...");
@@ -275,16 +287,16 @@ public class Handler extends AbstractHandler {
 	        });
 	        pane4.add(pfpButton);
 		//adds "Select Directory" Label,Text field,and Button to pane1.
-		pane1.setBackground(Color.WHITE);
+		pane1.setBackground(Color.white);
 			pane1.setLayout(new FlowLayout(FlowLayout.RIGHT));
-		    JLabel dirLabel = new JLabel("Select Directory        ");
+		    JLabel dirLabel = new JLabel("Select Directory       ");
 			dirLabel.setFont(new Font("Monospace", Font.PLAIN, 22));
 			dirLabel.setForeground(Color.BLACK);
 			pane1.add(dirLabel);
 			JTextField dirTextfield;
-
 			dirTextfield = new JTextField(rootDir.getAbsolutePath());
 			dirTextfield.setPreferredSize(new Dimension(275,35));
+			dirTextfield.setEditable(false);
 			pane1.add(dirTextfield);
 			JButton dirButton;
 			dirButton = new JButton("browse...");
@@ -295,22 +307,22 @@ public class Handler extends AbstractHandler {
 				}
 			});
 			pane1.add(dirButton);  
-	    pane6.setBackground(Color.WHITE);
+	    pane6.setBackground(Color.white);
 	    //adds "Create Projected File" Button to pane1.
-	    pane5.setBackground(Color.WHITE);
+	    pane5.setBackground(Color.white);
+	    	pane5.setBorder(new EmptyBorder(10, 0, 0, 0));
 		 	JButton goButton;
-		    goButton = new JButton("Create Projected File");
+		    goButton = new JButton("Create Projected Directory");
 		    goButton.setPreferredSize(new Dimension(300,35));
 		    goButton.addActionListener(new ActionListener(){
-				public void actionPerformed(ActionEvent e){
+		    	public void actionPerformed(ActionEvent e){
 					try {
-							project(rootDir);
 							getSize(rootDir);
-							JProgressBar pb = new JProgressBar();
-					        pb.setMinimum(0);
+						 	pb.setMinimum(0);
 					        pb.setMaximum(size);
 					        pb.setStringPainted(true);
 					        pb.setPreferredSize(new Dimension(500,35));
+<<<<<<< Updated upstream
 					        pane6.removeAll();					    
 							pane6.add(pb);
 							pane6.revalidate();
@@ -327,6 +339,12 @@ public class Handler extends AbstractHandler {
 					                JOptionPane.showMessageDialog(frame, p.getMessage());
 					            }
 					        }
+=======
+					        pane6.removeAll();
+							pane6.add(pb);
+							pane6.revalidate();
+							project(rootDir);
+>>>>>>> Stashed changes
 					} catch (IOException e1) {
 						// TODO Auto-generated catch block
 						e1.printStackTrace();
@@ -335,6 +353,7 @@ public class Handler extends AbstractHandler {
 			});
 		    pane5.add(goButton);
         //adding all components to main GUI frame.
+		frame.add(title);
 	    frame.add(pane1);
 	    frame.add(pane4);
 	    frame.add(pane5);
@@ -382,8 +401,14 @@ public class Handler extends AbstractHandler {
 		{
 			File temp = new File(to, files[i].getName());
 			runCount++;
+<<<<<<< Updated upstream
 			System.out.println(runCount);
 			System.out.println(temp.getName());
+=======
+			pb.setValue(runCount);
+			if(debug)
+				System.out.println(temp.getName());
+>>>>>>> Stashed changes
 			if(files[i].isDirectory())
 			{
 				String pattern = "[.]+.*";
@@ -456,6 +481,10 @@ public class Handler extends AbstractHandler {
 		for(int i = 0; i < files.length; i++)
 		{
 			runCount++;
+<<<<<<< Updated upstream
+=======
+			pb.setValue(runCount);
+>>>>>>> Stashed changes
 			if(files[i].getName().contains("big_leaver"))
 				BL = files[i];
 			if(files[i].getName().contains(".cpp"))
@@ -502,6 +531,8 @@ public class Handler extends AbstractHandler {
 		if(dirVar == null)
 		{
 			System.err.println("NO VARIANT DIRECTORY DETECTED IN " + from.getAbsolutePath());
+			JFrame errorframe = new JFrame();
+		    JOptionPane.showMessageDialog(errorframe, "NO VARIANT DIRECTORY DETECTED IN\n" + from.getAbsolutePath());
 			return null;
 		}
 		File temp = new File(to, from.getName().substring(1));
