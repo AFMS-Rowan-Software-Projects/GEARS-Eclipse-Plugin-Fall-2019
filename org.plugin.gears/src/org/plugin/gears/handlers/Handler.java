@@ -469,7 +469,10 @@ public class Handler extends AbstractHandler {
 			return null;
 		}
 		
-		File temp = convert(cppVar, new File(to,from.getName().substring(1,from.getName().length()-4) + ".cpp"));
+		ArrayList<String> tagArray = new ArrayList<String>();
+		tagArray.add("//Delete");
+		tagArray.add("//Erase");
+		File temp = convert(cppVar, new File(to,from.getName().substring(1,from.getName().length()-4) + ".cpp"), tagArray);
 		temp.createNewFile();
 		return temp;
 	}
@@ -507,8 +510,8 @@ public class Handler extends AbstractHandler {
 		return temp;
 	}
 	
-	public static File convert(File codeFile, File newFile) throws IOException 
-	{		
+public static File convert(File codeFile, File newFile, ArrayList<String> tags) throws IOException {
+		
 		Scanner sc = new Scanner(codeFile);
 		FileWriter fw = new FileWriter (newFile);
 		
@@ -520,25 +523,30 @@ public class Handler extends AbstractHandler {
 		
 		while (sc.hasNextLine()) {
 			String currLine = sc.nextLine();
-			if(currLine.contains("//Delete")) {
-				if(deleteTagStatus == 0) {
-					deleteTagStatus = 1;
-					if(debug)
+			//iterates through the current set of deletion tags provided by the tags arraylist
+			for(int i=0; i<tags.size(); i++) {
+				if(currLine.contains(tags.get(i))) {
+					if(deleteTagStatus == 0) {
+						//If found the deletion tag, start the deletion process
+						deleteTagStatus = 1;
 						System.out.println("Found Tag, deleting lines");
-				} else {
-					deleteTagStatus = 0;
-					if(debug)
+					} else {
+						//If found the deletion tag, end the deletion process
+						deleteTagStatus = 0;
 						System.out.println("Found Tag, saving lines");
-				}
-			} else {
-				if(deleteTagStatus == 0) {
-					if(debug)
-						System.out.println("Keep this line");
-					fw.write(currLine + "\n");
-				} else if(debug)
+					}
+				} else {
+					if(deleteTagStatus == 0) {
+						//if not deleting, write the line to the new file
+						fw.write(currLine + "\n");
+					} else {
+						//if deleting, ignore the line and move to the next one
 						System.out.println("Delete this line");
+					}
+				}
 			}
 		}
+			
 		
 		fw.close();
 		sc.close();
