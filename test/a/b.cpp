@@ -1,0 +1,1 @@
+Hi, I'm a regular, not-variant file.
