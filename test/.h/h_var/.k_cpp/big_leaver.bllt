@@ -1,5 +1,0 @@
-when (true)
-  select "k_var.cpp"
-   {
-      feature CAP1;
-   }
