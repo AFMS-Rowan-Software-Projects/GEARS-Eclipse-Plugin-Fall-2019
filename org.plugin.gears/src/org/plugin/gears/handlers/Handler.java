@@ -33,6 +33,7 @@ import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import javax.swing.border.EmptyBorder;
 
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
@@ -67,6 +68,7 @@ public class Handler extends AbstractHandler {
 	static File projDir = new File(ResourcesPlugin.getWorkspace().getRoot().getLocation().toString());
 	static int size = 0;
 	static int runCount = 0;
+	static JProgressBar pb = new JProgressBar();
 	/**
 	 * fileList handles displaying the "browse" menu which shows relevant
 	 * files in the users eclipse workspace and sub-directories.
@@ -144,7 +146,7 @@ public class Handler extends AbstractHandler {
         //get workspace files, save them in listOfFiles.
         labels = makeList(check, currentDir);
         //fileList GUI components.
-        String title = "JList Sample";
+        String title = "GEARS browser";
         JFrame f = new JFrame(title);
         JList list = new JList(labels.toArray());
         list.setFont(new Font("Monospace", Font.PLAIN, 25));
@@ -254,6 +256,15 @@ public class Handler extends AbstractHandler {
 		JPanel pane4 = new JPanel();
 		JPanel pane5 = new JPanel();
 		JPanel pane6 = new JPanel();
+		JPanel title = new JPanel();
+		//adds title panel
+		title.setBackground(Color.white);
+    	title.setLayout(new FlowLayout(FlowLayout.LEFT));
+    	title.setBorder(new EmptyBorder(10, 0, 0, 0));
+    	JLabel titleLabel = new JLabel(" GEARS   ");
+    	titleLabel.setFont(new Font("Monospace", Font.PLAIN, 35));
+    	titleLabel.setForeground(new Color(105,0,204));
+    	title.add(titleLabel);
 		//adds "Projected File Path" Label,Text field,and Button to pane1.
 	    pane4.setBackground(Color.WHITE);
 		    pane4.setLayout(new FlowLayout(FlowLayout.RIGHT));
@@ -297,36 +308,27 @@ public class Handler extends AbstractHandler {
 			pane1.add(dirButton);  
 	    pane6.setBackground(Color.WHITE);
 	    //adds "Create Projected File" Button to pane1.
-	    pane5.setBackground(Color.WHITE);
+	    pane5.setBackground(Color.white);
+	    	pane5.setBorder(new EmptyBorder(10, 0, 0, 0));
 		 	JButton goButton;
-		    goButton = new JButton("Create Projected File");
+		    goButton = new JButton("Create Projected Directory");
 		    goButton.setPreferredSize(new Dimension(300,35));
 		    goButton.addActionListener(new ActionListener(){
-				public void actionPerformed(ActionEvent e){
+		    	public void actionPerformed(ActionEvent e){
 					try {
-							project(rootDir);
 							getSize(rootDir);
-							JProgressBar pb = new JProgressBar();
-					        pb.setMinimum(0);
+						 	pb.setMinimum(0);
 					        pb.setMaximum(size);
 					        pb.setStringPainted(true);
 					        pb.setPreferredSize(new Dimension(500,35));
+					        pane6.removeAll();					    
 							pane6.add(pb);
 							pane6.revalidate();
-							
-							for (int i = 0; i <= size; i++) {
-								i = runCount;
-					            try {
-					                SwingUtilities.invokeLater(new Runnable() {
-					                    public void run() {
-					                        pb.setValue(runCount);
-					                    }
-					                });
-					                java.lang.Thread.sleep(100);
-					            } catch (InterruptedException p) {
-					                JOptionPane.showMessageDialog(frame, p.getMessage());
-					            }
-					        }
+
+					        pane6.removeAll();
+							pane6.add(pb);
+							pane6.revalidate();
+							project(rootDir);
 					} catch (IOException e1) {
 						// TODO Auto-generated catch block
 						e1.printStackTrace();
@@ -335,13 +337,14 @@ public class Handler extends AbstractHandler {
 			});
 		    pane5.add(goButton);
         //adding all components to main GUI frame.
+		frame.add(title);
 	    frame.add(pane1);
 	    frame.add(pane4);
 	    frame.add(pane5);
 	    frame.add(pane6);
 	    frame.setVisible(true);
 	}
-	
+
 	public static void project(File from) throws IOException
 	{
 		checkVar(from);
@@ -350,6 +353,7 @@ public class Handler extends AbstractHandler {
 	
 	public static void checkVar(File dir) throws IOException
 	{
+		
 		boolean isVar = false;
 		String pattern = "[.]+.*";
 		String name = dir.getName();
@@ -381,6 +385,7 @@ public class Handler extends AbstractHandler {
 		{
 			File temp = new File(to, files[i].getName());
 			runCount++;
+			pb.setValue(runCount);
 			if(debug)
 				System.out.println(temp.getName());
 			if(files[i].isDirectory())
@@ -454,6 +459,7 @@ public class Handler extends AbstractHandler {
 		File cppVar = null;
 		for(int i = 0; i < files.length; i++)
 		{
+			runCount++;
 			if(files[i].getName().contains("big_leaver"))
 				BL = files[i];
 			if(files[i].getName().contains(".cpp"))
@@ -535,17 +541,24 @@ public static File convert(File codeFile, File newFile, ArrayList<String> tags) 
 						deleteTagStatus = 0;
 						System.out.println("Found Tag, saving lines");
 					}
-				} else {
-					if(deleteTagStatus == 0) {
-						//if not deleting, write the line to the new file
-						fw.write(currLine + "\n");
-					} else {
-						//if deleting, ignore the line and move to the next one
-						System.out.println("Delete this line");
-					}
+					currLine = sc.nextLine();
+					break;
 				}
 			}
+			if(deleteTagStatus == 0) {
+				//if not deleting, write the line to the new file
+				System.out.println("----");
+				System.out.println(currLine);
+				System.out.println("Save this line");
+				fw.write(currLine + "\n");
+			} else {
+				//if deleting, ignore the line and move to the next one
+				System.out.println("----");
+				System.out.println(currLine);
+				System.out.println("Delete this line");
+			}
 		}
+		
 			
 		
 		fw.close();
